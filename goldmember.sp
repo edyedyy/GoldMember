@@ -12,7 +12,7 @@ public Plugin myinfo =
 	author = "kRatoss",
 	description = "Gives Free Armor to players that have your server hostname in their Steam Name",
 	version = "1.0",
-	url = ""
+	url = "https://www.kratoss.eu/"
 }; 
 
 public void OnPluginStart()
@@ -34,10 +34,7 @@ public Action Event_Spawn(Handle event, const char[] name, bool dontBroadcast)
 		GivePlayerItem(iClient, "item_assaultsuit");
 		SetEntProp(iClient, Prop_Send, "m_ArmorValue", 100);
 		SetEntProp(iClient, Prop_Send, "m_bHasHelmet", true);
-	}
-	
-	if(StrContains(sName, SERVER, false) > -1)
-	{
+
 		PrintToChat(iClient, ">> You're\x07 Gold Member® \x01");
 		PrintToChat(iClient, ">> You're getting\x04 Free Armor");
 	}
