@@ -1,46 +1,161 @@
-//#include <CSGOkratos>
 #include <sourcemod>
-#include <clientprefs>
+//#include <clientprefs>
+//#include <mostactive>
 #include <cstrike>
 #include <sdktools>
-
-static const char SERVER[] = "your.dns.eu";
+#include <vip_core>
 
 public Plugin myinfo = 
 {
 	name = "GOLD MEMBER",
 	author = "kRatoss",
-	description = "Gives Free Armor to players that have your server hostname in their Steam Name",
-	version = "1.0",
-	url = "https://www.kratoss.eu/"
+	description = "DNS BENEFITS",
+	version = "1.1",
+	url = "kratoss.eu"
 }; 
+
+//CONSOLE VARIABLES
+ConVar g_cvFirstRoundArmor,
+		g_cvDNS,
+		g_cvArmorValue,
+		g_cvTagType,
+		ConVar_Restart,
+		g_cvGiveHelmet
+		
+bool b_IsGoldMember[MAXPLAYERS + 1];
+
+int g_iNumRound;
 
 public void OnPluginStart()
 {
 	HookEvent("player_spawn", Event_Spawn);
+	
+	g_cvFirstRoundArmor = CreateConVar("first_round", "1", "Give Armor on Pistol Round?");
+	g_cvArmorValue = CreateConVar("armor_value", "100", "Armor value");
+	
+	g_cvDNS = CreateConVar("dns", "kratoss.eu", "The DNS that players need to have in steam name to get gold memer");
+	
+	g_cvTagType = CreateConVar("tag_type", "1", \
+		"Tab tag type? 0 = Disable, 1 = Set Tag only if the player doesn't have any tag, 2 = Overide curent tag");
+		
+	g_cvGiveHelmet = CreateConVar("give_helmet", "1", "0 = Don't give helmet, 1 = Give helmet'");
+			
+	ConVar_Restart = FindConVar("mp_restartgame");
+	ConVar_Restart.AddChangeHook(ConVarChange_Restart);	
+	
+	RegConsoleCmd("sm_checkname", Cmd_Check);
+}
+
+public void OnMapStart()
+{
+   g_iNumRound = 0;
+}
+
+public Action Event_RoundPreStart(Event event, const char[] name, bool dontBroadcast)
+{   
+   if(!GameRules_GetProp("m_bWarmupPeriod"))
+   {
+      g_iNumRound++;
+   }
+}
+
+public void ConVarChange_Restart(ConVar convar, const char[] oldValue, const char[] newValue)
+{
+   g_iNumRound = 0;
+}
+
+public void OnClientPutInServer(int iClient)
+{
+	char sName[MAX_NAME_LENGTH], g_sDNS[MAX_NAME_LENGTH];
+	
+	GetConVarString(g_cvDNS, g_sDNS, sizeof(g_sDNS));
+	GetClientName(iClient, sName, MAX_NAME_LENGTH);
+	
+	if(StrContains(sName, g_sDNS, false) > -1)
+	{
+		b_IsGoldMember[iClient] = true;
+	}
 }
 
 public Action Event_Spawn(Handle event, const char[] name, bool dontBroadcast)
 {
-	int iClient = GetClientOfUserId(GetEventInt(event, "userid"));	
-	static char tag[PLATFORM_MAX_PATH], sName[MAX_NAME_LENGTH];
+	int iClient = GetClientOfUserId(GetEventInt(event, "userid"));
 	
-	GetClientName(iClient, sName, MAX_NAME_LENGTH);
-	CS_GetClientClanTag(iClient, tag, sizeof(tag));
-	
-	if(StrContains(sName, SERVER, false) > -1)
+	if(b_IsGoldMember[iClient] == true)
 	{
-		GivePlayerItem(iClient, "item_kevlar");
-		GivePlayerItem(iClient, "item_assaultsuit");
-		SetEntProp(iClient, Prop_Send, "m_ArmorValue", 100);
-		SetEntProp(iClient, Prop_Send, "m_bHasHelmet", true);
-
-		PrintToChat(iClient, ">> You're\x07 Gold Member® \x01");
-		PrintToChat(iClient, ">> You're getting\x04 Free Armor");
+		if(GetConVarInt(g_cvFirstRoundArmor) == 1)
+		{
+			GiveArmor(iClient);
+		}
+		else if(GetConVarInt(g_cvFirstRoundArmor) == 0)
+		{
+			if(g_iNumRound == 1 || g_iNumRound == 16)
+			{
+				return Plugin_Handled;
+			}
+			else
+			{
+				GiveArmor(iClient);
+			}
+		}
+		
+		if(GetConVarInt(g_cvTagType) != 0)
+		{
+			if(!CheckCommandAccess(iClient, "sm_test", ADMFLAG_GENERIC, true) && !VIP_IsClientVIP(iClient))
+				SetClanTag(iClient);
+		}
 	}
 	
-	if (strlen(tag) < 1)
+	return Plugin_Handled;
+}
+
+void GiveArmor(iClient)
+{
+	int iValue = GetConVarInt(g_cvArmorValue);
+	
+	GivePlayerItem(iClient, "item_kevlar");
+	GivePlayerItem(iClient, "item_assaultsuit");
+	SetEntProp(iClient, Prop_Send, "m_ArmorValue", iValue);
+	
+	if(GetConVarInt(g_cvGiveHelmet) == 1)
+		SetEntProp(iClient, Prop_Send, "m_bHasHelmet", true);
+
+	PrintToChat(iClient, ">> You're\x07 Gold Member® \x01");
+	PrintToChat(iClient, ">> You're getting\x04 Free Armor");
+}
+
+void SetClanTag(int iClient)
+{
+	char sTag[MAX_NAME_LENGTH];
+	CS_GetClientClanTag(iClient, sTag, sizeof(sTag));
+	
+	if(GetConVarInt(g_cvTagType) == 1)
+	{
+		if(strlen(sTag) < 1)
+			CS_SetClientClanTag(iClient, "Gold Member®");
+	}
+	else if (GetConVarInt(g_cvTagType) == 2)
 	{
 		CS_SetClientClanTag(iClient, "Gold Member®");
+	}
+}
+
+public Action Cmd_Check(int iClient, int iArgs)
+{
+	char sNewName[MAX_NAME_LENGTH], 
+		 sDNS[MAX_NAME_LENGTH];
+		 
+	GetClientName(iClient, sNewName, MAX_NAME_LENGTH);
+	GetConVarString(g_cvDNS, sDNS, sizeof(sDNS));
+	
+	if(StrContains(sNewName, sDNS, false) > -1)
+	{
+		b_IsGoldMember[iClient] = true;
+		
+		PrintToChat(iClient, "\x04* \x01 Your are /x03 Gold Member® /x01 Now")
+	}
+	else
+	{
+		b_IsGoldMember[iClient] = false;
 	}
 }
