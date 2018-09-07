@@ -10,7 +10,7 @@ public Plugin myinfo =
 	name = "GOLD MEMBER",
 	author = "kRatoss",
 	description = "DNS BENEFITS",
-	version = "1.1",
+	version = "1.2",
 	url = "kratoss.eu"
 }; 
 
@@ -30,15 +30,15 @@ public void OnPluginStart()
 {
 	HookEvent("player_spawn", Event_Spawn);
 	
-	g_cvFirstRoundArmor = CreateConVar("first_round", "1", "Give Armor on Pistol Round?");
-	g_cvArmorValue = CreateConVar("armor_value", "100", "Armor value");
+	g_cvFirstRoundArmor = CreateConVar("sm_goldmember_first_round", "1", "Give Armor on Pistol Round?");
+	g_cvArmorValue = CreateConVar("sm_goldmember_armor_value", "100", "Armor value");
 	
-	g_cvDNS = CreateConVar("dns", "kratoss.eu", "The DNS that players need to have in steam name to get gold memer");
+	g_cvDNS = CreateConVar("sm_goldmember_host", "kratoss.eu", "The DNS that players need to have in steam name to get gold memer");
 	
-	g_cvTagType = CreateConVar("tag_type", "1", \
+	g_cvTagType = CreateConVar("sm_goldmember_tag_type", "1", \
 		"Tab tag type? 0 = Disable, 1 = Set Tag only if the player doesn't have any tag, 2 = Overide curent tag");
 		
-	g_cvGiveHelmet = CreateConVar("give_helmet", "1", "0 = Don't give helmet, 1 = Give helmet'");
+	g_cvGiveHelmet = CreateConVar("sm_goldmember_give_helmet", "1", "0 = Don't give helmet, 1 = Give helmet'");
 			
 	ConVar_Restart = FindConVar("mp_restartgame");
 	ConVar_Restart.AddChangeHook(ConVarChange_Restart);	
