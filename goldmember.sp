@@ -10,17 +10,19 @@ public Plugin myinfo =
 	name = "GOLD MEMBER",
 	author = "kRatoss",
 	description = "DNS BENEFITS",
-	version = "1.2",
+	version = "1.1",
 	url = "kratoss.eu"
 }; 
 
 //CONSOLE VARIABLES
-ConVar g_cvFirstRoundArmor,
+ConVar g_cvFirstRound,
 		g_cvDNS,
 		g_cvArmorValue,
 		g_cvTagType,
 		ConVar_Restart,
-		g_cvGiveHelmet
+		g_cvGiveHelmet,
+		g_cvMoney,
+		g_cvMoneyProcent
 		
 bool b_IsGoldMember[MAXPLAYERS + 1];
 
@@ -30,18 +32,31 @@ public void OnPluginStart()
 {
 	HookEvent("player_spawn", Event_Spawn);
 	
-	g_cvFirstRoundArmor = CreateConVar("sm_goldmember_first_round", "1", "Give Armor on Pistol Round?");
-	g_cvArmorValue = CreateConVar("sm_goldmember_armor_value", "100", "Armor value");
+	g_cvFirstRound = CreateConVar("sm_goldmember_first_round", "1", \
+		"Enable Plugin in Pistol Rounds?");
 	
-	g_cvDNS = CreateConVar("sm_goldmember_host", "kratoss.eu", "The DNS that players need to have in steam name to get gold memer");
+	g_cvArmorValue = CreateConVar("sm_goldmember_armor_value", "100", \
+		"Armor value");
+	
+	g_cvDNS = CreateConVar("sm_goldmember_host", "kratoss.eu", \
+		"The DNS that players need to have in steam name to get gold memer.");
 	
 	g_cvTagType = CreateConVar("sm_goldmember_tag_type", "1", \
 		"Tab tag type? 0 = Disable, 1 = Set Tag only if the player doesn't have any tag, 2 = Overide curent tag");
+
+	g_cvGiveHelmet = CreateConVar("sm_goldmember_give_helmet", "1", \
+		"0 = Don't give helmet, 1 = Give helmet'");
+	
+	g_cvMoney = CreateConVar("sm_goldmember_give_money", "1", \
+		"Give % of GoldMember's Money back.");
 		
-	g_cvGiveHelmet = CreateConVar("sm_goldmember_give_helmet", "1", "0 = Don't give helmet, 1 = Give helmet'");
-			
+	g_cvMoneyProcent = CreateConVar("sm_goldmember_procent", "0.2", \
+		"% of GoldMember's Money to give back. (0.2 = 20%, 0.5 = 50%)");
+		
+	
+	//Do not change this!!
 	ConVar_Restart = FindConVar("mp_restartgame");
-	ConVar_Restart.AddChangeHook(ConVarChange_Restart);	
+	ConVar_Restart.AddChangeHook(ConVarChange_Restart);
 	
 	RegConsoleCmd("sm_checkname", Cmd_Check);
 }
@@ -83,11 +98,11 @@ public Action Event_Spawn(Handle event, const char[] name, bool dontBroadcast)
 	
 	if(b_IsGoldMember[iClient] == true)
 	{
-		if(GetConVarInt(g_cvFirstRoundArmor) == 1)
+		if(GetConVarInt(g_cvFirstRound) == 1)
 		{
 			GiveArmor(iClient);
 		}
-		else if(GetConVarInt(g_cvFirstRoundArmor) == 0)
+		else if(GetConVarInt(g_cvFirstRound) == 0)
 		{
 			if(g_iNumRound == 1 || g_iNumRound == 16)
 			{
@@ -105,6 +120,16 @@ public Action Event_Spawn(Handle event, const char[] name, bool dontBroadcast)
 				SetClanTag(iClient);
 		}
 	}
+	
+	if(GetConVarInt(g_cvMoney) == 1)
+	{
+		int iAccount = GetEntProp(iClient, Prop_Send, "m_iAccount");
+		float fBonus = (GetConVarFloat(g_cvMoneyProcent) * iAccount)
+		
+		SetEntProp(iClient, Prop_Send, "m_iAccount", iAccount + fBonus);
+		
+		PrintToChat(iClient, "\x0B THANKS FOR ADVERTISING. \x06 YOU HAVE \x09 %f \x02 $ \x06BONUS", fBonus);
+	}	
 	
 	return Plugin_Handled;
 }
