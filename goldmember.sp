@@ -10,7 +10,7 @@ public Plugin myinfo =
 	name = "GOLD MEMBER",
 	author = "kRatoss",
 	description = "DNS BENEFITS",
-	version = "1.1",
+	version = "1.3",
 	url = "kratoss.eu"
 }; 
 
