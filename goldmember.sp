@@ -101,6 +101,16 @@ public Action Event_Spawn(Handle event, const char[] name, bool dontBroadcast)
 		if(GetConVarInt(g_cvFirstRound) == 1)
 		{
 			GiveArmor(iClient);
+		
+			if(GetConVarInt(g_cvMoney) == 1)
+			{
+				int iAccount = GetEntProp(iClient, Prop_Send, "m_iAccount");
+				float fBonus = (GetConVarFloat(g_cvMoneyProcent) * iAccount)
+				
+				SetEntProp(iClient, Prop_Send, "m_iAccount", iAccount + fBonus);
+				
+				PrintToChat(iClient, "\x0B THANKS FOR ADVERTISING. \x06 YOU HAVE \x09 %f \x02 $ \x06BONUS", fBonus);
+			}				
 		}
 		else if(GetConVarInt(g_cvFirstRound) == 0)
 		{
@@ -120,16 +130,6 @@ public Action Event_Spawn(Handle event, const char[] name, bool dontBroadcast)
 				SetClanTag(iClient);
 		}
 	}
-	
-	if(GetConVarInt(g_cvMoney) == 1)
-	{
-		int iAccount = GetEntProp(iClient, Prop_Send, "m_iAccount");
-		float fBonus = (GetConVarFloat(g_cvMoneyProcent) * iAccount)
-		
-		SetEntProp(iClient, Prop_Send, "m_iAccount", iAccount + fBonus);
-		
-		PrintToChat(iClient, "\x0B THANKS FOR ADVERTISING. \x06 YOU HAVE \x09 %f \x02 $ \x06BONUS", fBonus);
-	}	
 	
 	return Plugin_Handled;
 }
