@@ -1,6 +1,6 @@
 #include <sourcemod>
 //#include <clientprefs>
-//#include <mostactive>
+#include <mostactive>
 #include <cstrike>
 #include <sdktools>
 #include <vip_core>
@@ -10,9 +10,9 @@ public Plugin myinfo =
 	name = "GOLD MEMBER",
 	author = "kRatoss",
 	description = "DNS BENEFITS",
-	version = "1.3",
+	version = "1.4",
 	url = "kratoss.eu"
-}; 
+};
 
 //CONSOLE VARIABLES
 ConVar g_cvFirstRound,
@@ -22,9 +22,12 @@ ConVar g_cvFirstRound,
 		ConVar_Restart,
 		g_cvGiveHelmet,
 		g_cvMoney,
-		g_cvMoneyProcent
+		g_cvMoneyProcent,
+		g_cvMostActive,
+		g_cvPistol,
+		g_cvHours
 		
-bool b_IsGoldMember[MAXPLAYERS + 1];
+bool b_IsGoldMember[MAXPLAYERS + 1], b_HasEHours[MAXPLAYERS + 1];
 
 int g_iNumRound;
 
@@ -52,6 +55,15 @@ public void OnPluginStart()
 		
 	g_cvMoneyProcent = CreateConVar("sm_goldmember_procent", "0.2", \
 		"% of GoldMember's Money to give back. (0.2 = 20%, 0.5 = 50%)");
+		
+	g_cvMostActive = CreateConVar("sm_goldmember_use_mostactive", "1", \
+		"Use mostactive.smx to give a P250 to players that have over x Hours");
+	
+	g_cvPistol = CreateConVar("sm_goldmember_pistol", "weapon_p250", \
+		"Name of the weapon to give to GoldMember that have more that x Hours");
+		
+	g_cvHours = CreateConVar("sm_goldmember", "36000", 
+		"X Hours that player need to have Hours Benefits");
 		
 	
 	//Do not change this!!
@@ -89,6 +101,14 @@ public void OnClientPutInServer(int iClient)
 	if(StrContains(sName, g_sDNS, false) > -1)
 	{
 		b_IsGoldMember[iClient] = true;
+	}
+	
+	if(GetConVarInt(g_cvMostActive) == 1)
+	{
+		if(MostActive_GetPlayTimeTotal(iClient) >= GetConVarInt(g_cvHours))
+		{
+			b_HasEHours[iClient] = true;
+		}
 	}
 }
 
@@ -129,6 +149,21 @@ public Action Event_Spawn(Handle event, const char[] name, bool dontBroadcast)
 			if(!CheckCommandAccess(iClient, "sm_test", ADMFLAG_GENERIC, true) && !VIP_IsClientVIP(iClient))
 				SetClanTag(iClient);
 		}
+	}
+	
+	if(b_HasEHours[iClient] == true)
+	{
+		//thanks to @Francisco
+		int iWeapon;
+		while ((iWeapon = GetPlayerWeaponSlot(iClient, CS_SLOT_SECONDARY)) != -1)
+	    {
+	        RemovePlayerItem(iClient, iWeapon);
+	        AcceptEntityInput(iWeapon, "Kill");
+	    }
+
+		char sWpn[32];
+		GetConVarString(g_cvPistol, sWpn, sizeof(sWpn));
+		GivePlayerItem(iClient, sWpn);
 	}
 	
 	return Plugin_Handled;
