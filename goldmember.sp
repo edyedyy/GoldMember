@@ -10,7 +10,7 @@ public Plugin myinfo =
 	name = "GOLD MEMBER",
 	author = "kRatoss",
 	description = "DNS BENEFITS",
-	version = "1.4",
+	version = "1.5",
 	url = "kratoss.eu"
 };
 
@@ -25,7 +25,8 @@ ConVar g_cvFirstRound,
 		g_cvMoneyProcent,
 		g_cvMostActive,
 		g_cvPistol,
-		g_cvHours
+		g_cvHours,
+		g_cvAfterRoundStartTime
 		
 bool b_IsGoldMember[MAXPLAYERS + 1], b_HasEHours[MAXPLAYERS + 1];
 
@@ -62,8 +63,11 @@ public void OnPluginStart()
 	g_cvPistol = CreateConVar("sm_goldmember_pistol", "weapon_p250", \
 		"Name of the weapon to give to GoldMember that have more that x Hours");
 		
-	g_cvHours = CreateConVar("sm_goldmember", "36000", 
+	g_cvHours = CreateConVar("sm_goldmember_time", "36000", 
 		"X Hours that player need to have Hours Benefits");
+		
+	g_cvAfterRoundStartTime = CreateConVar("sm_goldmember_after_round_time", "2.0", \
+		"Afeter how many seconds equipt the goldmember?");
 		
 	
 	//Do not change this!!
@@ -115,7 +119,16 @@ public void OnClientPutInServer(int iClient)
 public Action Event_Spawn(Handle event, const char[] name, bool dontBroadcast)
 {
 	int iClient = GetClientOfUserId(GetEventInt(event, "userid"));
-	
+
+	if(iClient > 0 && b_IsGoldMember[iClient] &&
+		b_HasEHours[iClient] && IsPlayerAlive(iClient))
+		{
+			CreateTimer(GetConVarFloat(g_cvAfterRoundStartTime), Equipt, iClient, TIMER_FLAG_NO_MAPCHANGE);
+		}
+}
+
+public Action Equipt(Handle pTimer, any iClient)
+{
 	if(b_IsGoldMember[iClient] == true)
 	{
 		if(GetConVarInt(g_cvFirstRound) == 1)
