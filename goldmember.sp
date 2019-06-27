@@ -1,8 +1,6 @@
 #include <sourcemod>
-#include <mostactive>
 #include <cstrike>
 #include <sdktools>
-#include <vip_core>
 
 public Plugin myinfo = 
 {
@@ -31,7 +29,7 @@ public void OnPluginStart()
 					
 	g_cvBonus = CreateConVar("goldmember_bonus", "15.0", "How many percent are added to the current player?. Example: 15 = 15% = 15/100");
 	
-	g_cvSetClanTag = CreateConVar("goldmember_tag", "1.0", "Set Gold Member® Tag?"_, true, 0.0, true, 1.0);
+	g_cvSetClanTag = CreateConVar("goldmember_tag", "1.0", "Set Gold Member® Tag?", _, true, 0.0, true, 1.0);
 }
 
 public void OnClientPutInServer(int iClient)
