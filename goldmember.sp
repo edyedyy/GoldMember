@@ -11,16 +11,18 @@ public Plugin myinfo =
 	url = "kratoss.eu"
 };
 
-bool b_IsGoldMember[MAXPLAYERS + 1];
+bool b_IsGoldMember[MAXPLAYERS + 1]; 
 
-Handle g_hServerName;
-Handle g_cvFirstRound;
-Handle g_cvBonus;
-Handle g_cvSetClanTag;
+ConVar 	g_hServerName,
+ 		g_cvFirstRound,
+ 		g_cvBonus,
+		g_cvSetClanTag, 
+ 		g_cvGiveArmor
 
 public void OnPluginStart()
 {
 	HookEvent("player_spawn", Event_Spawn);
+
 	
 	g_hServerName = CreateConVar("goldmember_servername", "alliedmods.net", "Your server/community names that players must have in their nickname");
 					
@@ -30,6 +32,10 @@ public void OnPluginStart()
 	g_cvBonus = CreateConVar("goldmember_bonus", "15.0", "How many percent are added to the current player?. Example: 15 = 15% = 15/100");
 	
 	g_cvSetClanTag = CreateConVar("goldmember_tag", "1.0", "Set Gold Member® Tag?", _, true, 0.0, true, 1.0);
+	
+	g_cvGiveArmor = CreateConVar("goldmember_armor", "1.0", "Give goldmembers armor?", _, true, 0.0, true, 1.0);
+		
+	AutoExecConfig(true, "goldmember");
 }
 
 public void OnClientPutInServer(int iClient)
@@ -61,14 +67,15 @@ public Action Equipt(Handle pTimer, any iClient)
 	float WorkFirstRound = GetConVarFloat(g_cvFirstRound);
 	int iAccount = GetEntProp(iClient, Prop_Send, "m_iAccount");
 	float ConVarBonus = GetConVarFloat(g_cvBonus);
-	float fBonus = (ConVarBonus / 100);
-	
-	if(WorkFirstRound > 0.0)
+	float fBonus = (ConVarBonus / 100);	
+	float givearmor = GetConVarFloat(g_cvGiveArmor);
+		
+	if(WorkFirstRound == 1.0)
 	{
 		if(Round == 0 || Round == 15)
 			work = true;
 		else
-			work = true
+			work = false;
 	}
 	else
 		work = true;
@@ -80,7 +87,11 @@ public Action Equipt(Handle pTimer, any iClient)
 	if(work)
 	{
 		SetEntProp(iClient, Prop_Send, "m_iAccount", NewAcc);
-		PrintToChat(iClient, "* \x04 Thanks for advertising. \x06 You've got a money bonus.");
+		
+		if(givearmor == 1.0)
+			SetEntProp(iClient, Prop_Send, "m_ArmorValue", 100);
+			
+		PrintToChat(iClient, "* \x04 Thanks for advertising. \x06 You've Got a Money Bonud & Armor");
 	}
 		
 	// Clan Tag
