@@ -7,7 +7,7 @@ public Plugin myinfo =
 	name = "GOLD MEMBER",
 	author = "kRatoss aka Teazze",
 	description = "DNS BENEFITS",
-	version = "1.6",
+	version = "1.7",
 	url = "kratoss.eu"
 };
 
